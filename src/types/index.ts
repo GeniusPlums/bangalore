@@ -3,6 +3,12 @@ export type IssueStatus = "blocked" | "delayed" | "in_progress" | "resolved" | "
 export type NodeStatus = "blocker" | "delayed" | "completed" | "pending";
 export type DecisionStatus = "pending" | "in_progress" | "completed" | "deferred" | "overdue";
 export type RiskLevel = "low" | "medium" | "high" | "critical";
+export type TimelineEventType =
+  | "decision_created"
+  | "action_assigned"
+  | "escalation_raised"
+  | "blocker_reported"
+  | "status_changed";
 
 export interface Agency {
   id: string;
@@ -18,12 +24,15 @@ export interface TimelineEvent {
   title: string;
   description?: string;
   agency?: string;
+  type: TimelineEventType;
+  relatedEntityId?: string;
 }
 
 export interface Blocker {
   id: string;
   title: string;
   agency: string;
+  issueId: string;
   daysWaiting: number;
   status: IssueStatus;
 }
@@ -34,6 +43,7 @@ export interface PendingDecision {
   description: string;
   requiredBy: string;
   urgency: ImpactLevel;
+  requestId?: string;
 }
 
 export interface Issue {
@@ -48,6 +58,7 @@ export interface Issue {
   economicImpact: { low: number; base: number; high: number; unit: string };
   affectedCitizens: number;
   relatedProjects: string[];
+  relatedGraphNodes: string[];
   blockers: Blocker[];
   pendingDecisions: PendingDecision[];
   timeline: TimelineEvent[];
@@ -62,6 +73,14 @@ export interface Project {
   progress: number;
   dueDate: string;
   budget: string;
+  relatedIssues: string[];
+}
+
+export interface Dependency {
+  id: string;
+  sourceNodeId: string;
+  targetNodeId: string;
+  relationship: "blocks" | "depends_on" | "impacts";
 }
 
 export interface GraphNode {
@@ -69,8 +88,14 @@ export interface GraphNode {
   label: string;
   status: NodeStatus;
   agency: string;
+  owner: string;
   description: string;
   daysWaiting?: number;
+  issueId?: string;
+  dependencies: string[];
+  blockedBy: string[];
+  blocking: string[];
+  impacts: string[];
 }
 
 export interface GraphEdge {
@@ -98,12 +123,16 @@ export interface DecisionRequest {
   options: DecisionOption[];
   requestedDate: string;
   urgency: ImpactLevel;
+  status: "pending" | "resolved";
 }
 
 export interface ActionItem {
   id: string;
   title: string;
   agency: string;
+  owner: string;
+  issueId: string;
+  decisionId: string;
   status: DecisionStatus;
   progress: number;
   dueDate: string;
@@ -124,7 +153,7 @@ export interface Update {
   message: string;
 }
 
-export interface MinisterialDecision {
+export interface Decision {
   id: string;
   decisionNumber: string;
   title: string;
@@ -134,6 +163,7 @@ export interface MinisterialDecision {
   progress: number;
   dueDate: string;
   issueId: string;
+  issueName: string;
   selectedOption: string;
   actionItems: ActionItem[];
   expectedOutcome: string;
@@ -142,12 +172,17 @@ export interface MinisterialDecision {
   blockers: string[];
 }
 
+/** @deprecated Use Decision — kept for gradual migration */
+export type MinisterialDecision = Decision;
+
 export interface SearchResult {
   id: string;
-  type: "issue" | "project" | "decision" | "agency" | "blocker";
+  type: "issue" | "project" | "decision" | "agency" | "blocker" | "action_item";
   title: string;
   subtitle: string;
   href: string;
+  relatedTo?: string[];
+  agency?: string;
 }
 
 export interface BriefSummary {
@@ -155,4 +190,39 @@ export interface BriefSummary {
   highImpactBottlenecks: number;
   escalationsWaiting: number;
   projectsAtRisk: number;
+}
+
+export interface ReviewSnapshot {
+  timestamp: string;
+  issueDaysWaiting: Record<string, number>;
+  issueStatuses: Record<string, IssueStatus>;
+  decisionCount: number;
+  completedActionItems: number;
+  openBlockerCount: number;
+  pendingRequestCount: number;
+}
+
+export interface ChangeItem {
+  id: string;
+  message: string;
+  severity: "critical" | "warning" | "positive" | "neutral";
+  timestamp?: string;
+}
+
+export interface MinisterBrief {
+  greeting: string;
+  attentionCount: number;
+  issues: Array<{
+    id: string;
+    name: string;
+    bullets: string[];
+    status: IssueStatus;
+    daysWaiting: number;
+  }>;
+  recommendedDecision: {
+    issueName: string;
+    action: string;
+    issueId: string;
+  } | null;
+  generatedAt: string;
 }

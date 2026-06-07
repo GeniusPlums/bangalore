@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { getStatusColor, getProgressColor, formatDate, formatShortDate } from "@/lib/format";
-import type { MinisterialDecision } from "@/types";
+import type { Decision } from "@/types";
 
 const evidenceIcons = {
   document: FileText,
@@ -25,7 +25,7 @@ const evidenceIcons = {
 };
 
 interface ActionTrackingProps {
-  decision: MinisterialDecision;
+  decision: Decision;
 }
 
 export function ActionTracking({ decision }: ActionTrackingProps) {
@@ -96,6 +96,7 @@ export function ActionTracking({ decision }: ActionTrackingProps) {
                     </Badge>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-zinc-500">
+                    <span>Owner: <span className="text-zinc-300">{item.owner}</span></span>
                     <span>Agency: <span className="text-zinc-300">{item.agency}</span></span>
                     <span>Due: <span className="font-mono text-zinc-300">{formatShortDate(item.dueDate)}</span></span>
                   </div>

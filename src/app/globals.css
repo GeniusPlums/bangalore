@@ -153,3 +153,30 @@
 [cmdk-group-heading] {
   color: #71717a !important;
 }
+
+@media print {
+  aside,
+  header,
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    overflow: visible !important;
+  }
+
+  #minister-brief-export {
+    border: 1px solid #ccc !important;
+    background: white !important;
+    color: black !important;
+    break-inside: avoid;
+  }
+
+  #minister-brief-export,
+  #minister-brief-export p,
+  #minister-brief-export h2,
+  #minister-brief-export li,
+  #minister-brief-export a {
+    color: black !important;
+  }
+}

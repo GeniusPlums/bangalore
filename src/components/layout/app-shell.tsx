@@ -18,7 +18,7 @@ const navItems = [
   { href: "/graph", label: "Dependency Graph", icon: GitBranch },
   { href: "/decisions", label: "Decision Center", icon: Gavel },
   { href: "/ledger", label: "Decision Ledger", icon: BookOpen },
-  { href: "/search", label: "Search", icon: Search },
+  { href: "/search", label: "Institutional Memory", icon: Search },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -94,7 +94,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               })}
             </span>
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Live</span>
+            <span>Operational</span>
           </div>
         </header>
         <main className="flex-1 overflow-auto">{children}</main>

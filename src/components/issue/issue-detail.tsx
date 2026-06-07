@@ -16,15 +16,36 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { getStatusColor, getImpactColor, formatDate, formatCitizens } from "@/lib/format";
-import { projects } from "@/data/mock-data";
-import type { Issue } from "@/types";
+import { sortTimeline } from "@/store/selectors";
+import { useStore } from "@/store/use-store";
+import type { Issue, Project, TimelineEventType } from "@/types";
+
+const eventTypeLabels: Record<TimelineEventType, string> = {
+  decision_created: "Decision",
+  action_assigned: "Action",
+  escalation_raised: "Escalation",
+  blocker_reported: "Blocker",
+  status_changed: "Status",
+};
+
+const eventTypeColors: Record<TimelineEventType, string> = {
+  decision_created: "border-amber-700 bg-amber-950/30",
+  action_assigned: "border-blue-800 bg-blue-950/30",
+  escalation_raised: "border-red-800 bg-red-950/30",
+  blocker_reported: "border-red-900 bg-red-950/40",
+  status_changed: "border-zinc-700 bg-zinc-900/50",
+};
 
 interface IssueDetailProps {
   issue: Issue;
+  projects: Project[];
 }
 
-export function IssueDetailView({ issue }: IssueDetailProps) {
+export function IssueDetailView({ issue, projects }: IssueDetailProps) {
+  const decisions = useStore((s) => s.decisions);
   const relatedProjects = projects.filter((p) => issue.relatedProjects.includes(p.id));
+  const relatedDecisions = decisions.filter((d) => d.issueId === issue.id);
+  const sortedTimeline = sortTimeline(issue.timeline);
 
   return (
     <div className="space-y-8">
@@ -62,7 +83,6 @@ export function IssueDetailView({ issue }: IssueDetailProps) {
         <p className="text-sm text-zinc-400 mt-4 max-w-3xl leading-relaxed">{issue.description}</p>
       </motion.div>
 
-      {/* Key Metrics */}
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-zinc-800 bg-[#0d1117] p-5">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 mb-2 flex items-center gap-1.5">
@@ -88,7 +108,6 @@ export function IssueDetailView({ issue }: IssueDetailProps) {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        {/* Blockers */}
         <section>
           <h3 className="text-xs font-medium uppercase tracking-widest text-zinc-500 mb-4 flex items-center gap-2">
             <AlertTriangle className="h-3.5 w-3.5" />
@@ -112,7 +131,6 @@ export function IssueDetailView({ issue }: IssueDetailProps) {
           </div>
         </section>
 
-        {/* Pending Decisions */}
         <section>
           <h3 className="text-xs font-medium uppercase tracking-widest text-zinc-500 mb-4 flex items-center gap-2">
             <Gavel className="h-3.5 w-3.5" />
@@ -135,10 +153,27 @@ export function IssueDetailView({ issue }: IssueDetailProps) {
           ) : (
             <p className="text-sm text-zinc-500">No pending decisions for this issue.</p>
           )}
+
+          {relatedDecisions.length > 0 && (
+            <div className="mt-6">
+              <h4 className="text-[10px] uppercase tracking-widest text-zinc-600 mb-3">Recorded Decisions</h4>
+              <div className="space-y-2">
+                {relatedDecisions.map((d) => (
+                  <Link
+                    key={d.id}
+                    href={`/actions/${d.id}`}
+                    className="block rounded border border-zinc-800 bg-zinc-900/30 px-3 py-2 hover:border-zinc-700 transition-colors"
+                  >
+                    <p className="text-xs text-zinc-300">{d.title}</p>
+                    <p className="text-[10px] text-zinc-600 font-mono">{d.decisionNumber} · {d.selectedOption}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       </div>
 
-      {/* Related Projects */}
       {relatedProjects.length > 0 && (
         <section>
           <h3 className="text-xs font-medium uppercase tracking-widest text-zinc-500 mb-4 flex items-center gap-2">
@@ -173,26 +208,28 @@ export function IssueDetailView({ issue }: IssueDetailProps) {
 
       <Separator className="bg-zinc-800" />
 
-      {/* Timeline */}
       <section>
         <h3 className="text-xs font-medium uppercase tracking-widest text-zinc-500 mb-6">
-          Recent Activity Timeline
+          Activity Timeline
         </h3>
         <div className="relative">
           <div className="absolute left-[7px] top-2 bottom-2 w-px bg-zinc-800" />
           <div className="space-y-6">
-            {issue.timeline.map((event, i) => (
+            {sortedTimeline.map((event, i) => (
               <motion.div
                 key={event.id}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.06 }}
+                transition={{ delay: i * 0.04 }}
                 className="relative pl-8"
               >
                 <div className="absolute left-0 top-1.5 h-[15px] w-[15px] rounded-full border-2 border-zinc-700 bg-[#0d1117]" />
                 <div>
                   <div className="flex items-center gap-3 mb-1">
                     <span className="text-xs font-mono text-zinc-500">{formatDate(event.date)}</span>
+                    <span className={cn("text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded border", eventTypeColors[event.type])}>
+                      {eventTypeLabels[event.type]}
+                    </span>
                     {event.agency && (
                       <span className="text-[10px] text-zinc-600">{event.agency}</span>
                     )}

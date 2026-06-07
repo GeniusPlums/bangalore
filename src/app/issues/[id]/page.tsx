@@ -1,6 +1,4 @@
-import { notFound } from "next/navigation";
-import { issues } from "@/data/mock-data";
-import { IssueDetailView } from "@/components/issue/issue-detail";
+import { IssueDetailPageClient } from "@/components/issue/issue-detail-page-client";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -8,12 +6,10 @@ interface PageProps {
 
 export default async function IssueDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const issue = issues.find((i) => i.id === id);
-  if (!issue) notFound();
 
   return (
     <div className="p-8 max-w-5xl">
-      <IssueDetailView issue={issue} />
+      <IssueDetailPageClient id={id} />
     </div>
   );
 }

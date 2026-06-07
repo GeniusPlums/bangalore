@@ -36,14 +36,19 @@ export function DecisionCenterPanel({ request }: DecisionCenterProps) {
   const createDecision = useStore((s) => s.createDecision);
   const router = useRouter();
 
+  if (request.status === "resolved") {
+    return (
+      <div className="rounded-lg border border-emerald-900/30 bg-emerald-950/10 p-6 text-center">
+        <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-3" />
+        <p className="text-sm font-medium text-zinc-200">Decision recorded for this request</p>
+        <p className="text-xs text-zinc-500 mt-1">View execution status in the Decision Ledger.</p>
+      </div>
+    );
+  }
+
   const handleConfirm = () => {
     if (!selectedOption) return;
-    const decision = createDecision(
-      request.issueId,
-      request.issueName,
-      selectedOption,
-      request.title
-    );
+    const decision = createDecision(request.id, selectedOption);
     setConfirmOpen(false);
     setCreated(true);
     setTimeout(() => {
@@ -110,7 +115,7 @@ export function DecisionCenterPanel({ request }: DecisionCenterProps) {
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-zinc-600 mb-1 flex items-center gap-1">
-                      <Building2 className="h-3 w-3" /> Agencies
+                      <Building2 className="h-3 w-3" /> Ownership
                     </p>
                     <p className="text-xs text-zinc-300">{option.affectedAgencies.join(", ")}</p>
                   </div>
@@ -134,7 +139,7 @@ export function DecisionCenterPanel({ request }: DecisionCenterProps) {
           <DialogHeader>
             <DialogTitle className="text-zinc-100">Confirm Ministerial Decision</DialogTitle>
             <DialogDescription className="text-zinc-400">
-              You are about to record a ministerial decision. This will create action items and notify responsible agencies.
+              This will record a ministerial decision, assign action items with ownership, update issue status, and add entries to the activity timeline and decision ledger.
             </DialogDescription>
           </DialogHeader>
           {selectedOption && (
@@ -167,7 +172,7 @@ export function DecisionCenterPanel({ request }: DecisionCenterProps) {
           <div className="rounded-lg border border-emerald-800/50 bg-[#0d1117] p-8 text-center">
             <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-4" />
             <p className="text-lg font-semibold text-zinc-100">Ministerial Decision Recorded</p>
-            <p className="text-sm text-zinc-400 mt-2">Redirecting to action tracking...</p>
+            <p className="text-sm text-zinc-400 mt-2">Action items assigned. Redirecting to execution tracking...</p>
           </div>
         </motion.div>
       )}
